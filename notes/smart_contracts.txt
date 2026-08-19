@@ -12,4 +12,40 @@ Solidity - мова написання смарт-контрактів.
 Створюємо директорію evm/contracts - для кодів смарт-контрактів
 Створюємо директорію evm/scripts - для скриптів деплою смарт-контрактів
 ---------------------
-Створюємо файл evm/contracts/Counter.sol
+Створюємо файл evm/contracts/Counter.sol -- деталі у коментарях файлу
+Створюємо файл evm/scripts/deploy-counter.ts -- деталі у коментарях файлу
+---------------------
+Запускаємо два термінали
+=========== 1 ===============
+у першому (переконуємось, що ми у директорії evm/ або даємо
+команду cd evm)
+запускаємо саму мережу
+> npx hardhat node
+---- очікуваний результат ------
+Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
+
+Accounts
+========
+
+WARNING: Funds sent on live network to accounts with publicly known private keys WILL BE LOST.
+
+Account #0:  0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 (10000 ETH)
+Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+Account #1:  ...
+
+WARNING: Funds sent on live network to accounts with publicly known private keys WILL BE LOST.
+
+========= 2 =========
+у другому терміналі (не зупиняючи перший, переконавшись, що в ньому іде робота)
+також переконуємось, що робоча директорія терміналу evm/ (або переходимо до неї)
+запускаємо компіляцію всіх скриптів
+> npx hardhat compile
+------ очікуваний результат --------
+Downloading solc 0.8.28
+Downloading solc 0.8.28 (WASM build)
+
+Compiled 1 Solidity file with solc 0.8.28 (evm target: cancun)
+
+запускаємо скрипт публікації 
+> npx hardhat run scripts/deploy-counter.ts --build-profile production --network localhost

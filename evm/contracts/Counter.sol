@@ -8,11 +8,11 @@ pragma solidity ^0.8.28;
 contract Counter {                    // контракт є аналогом класу (ООП)
   uint public x;                      // поле типу uint - типізація статична
                                       // 
-  event Increment(uint by);           // 
-                                      // 
+  event Increment(uint by);           // Події - засіб інформування про зміни
+                                      // у смарт-контракті
   function inc() public {             // 
-    x += 1;                           // 
-    emit Increment(1);                // 
+    x += 1;                           // зміна стану - немає інформування
+    emit Increment(1);                // запуск події - інформування
   }                                   // 
                                       // 
   function incBy(uint by) public {    // 
