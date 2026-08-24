@@ -25,7 +25,10 @@ const task = await counter.inc();
 console.log('Waiting event result...', task);
 await task.wait();
 
-console.log('Deployment ok');
+const cnt = await counter.getCount();
+console.log("getCount -> ", cnt);
+
+console.log('Deployment finished');
 
 
 /*

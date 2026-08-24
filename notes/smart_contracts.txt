@@ -49,3 +49,8 @@ Compiled 1 Solidity file with solc 0.8.28 (evm target: cancun)
 
 запускаємо скрипт публікації 
 > npx hardhat run scripts/deploy-counter.ts --build-profile production --network localhost
+
+Start deploying in network localhost
+Deployment started...
+Deployment finished...
+Contract address:  0x5FbDB2315678afecb367f032d93F642f64180aa3
