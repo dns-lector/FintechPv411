@@ -6,6 +6,7 @@ import "hardhat/console.sol";
 contract Greeter {
     string private greeting;
     address private owner;   // address - число, що визначає вузол у мережі
+    event Changed(string newGreeting);
 
     constructor(string memory initialGreeting) {
         greeting = initialGreeting;
@@ -15,8 +16,26 @@ contract Greeter {
         console.log("Constructed contract with '", greeting, "' from ", owner);
     }
 
+    receive() external payable {}  // метод для дефолтного прийому ETH
+
+    fallback() external payable {  // обробник помилок за замовчанням
+        console.log("Error %s from %s", msg.value, msg.sender);
+    }
+
     function greet() public view returns (string memory) {
         return string.concat(greeting, " by ", addressToString(owner));
+    }
+
+    function setGreeting(string memory _greeting) public {
+        console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
+        greeting = _greeting;
+        emit Changed(greeting);
+        /*
+        Д.З. Реалізувати обмеження для смарт-контракту Greeter:
+        змінювати текст вітання може лише "власник" контракту - вузол,
+        який опублікував даний контракт.
+        * Реалізувати перелік вузлів, для яких дозволені такі зміни
+        */
     }
 
     // адреси подаються у гексадецимальному представленні 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
@@ -27,11 +46,32 @@ contract Greeter {
         bytes32 _bytes = bytes32(uint256(uint160(_address)));
         bytes memory HEX = "0123456789abcdef";   // ref-тип, слід зазначити сховище
         bytes memory _res = new bytes(42);       // 0,x,40 цифр (160 біт)
+        bytes memory _addr = new bytes(40);      // адреса, але без 0x
         _res[0] = '0';
         _res[1] = 'x';
         for(uint i = 0; i < 20; i++) {
-            _res[2 + i * 2] = HEX[uint8(_bytes[i + 12] >> 4)];
-            _res[3 + i * 2] = HEX[uint8(_bytes[i + 12] & 0x0f)];
+            _addr[i * 2] = _res[2 + i * 2] = HEX[uint8(_bytes[i + 12] >> 4)];
+            _addr[1 + i * 2] = _res[3 + i * 2] = HEX[uint8(_bytes[i + 12] & 0x0f)];
+        }
+        // внутрішній механізм контролю адрес:
+        // оскільки на значення байту не впливає розмір літери (0x1a == 0x1A)
+        // є можливість змінювати реєстр літер за певним алгоритмом, що дозволить
+        // відокремлювати неправильно сформовані адреси, а також ускладнить їх перебір
+        // через необхідність додаткової обробки
+        // Ідея - обчислення хешу keccak256 від адреси, що сформована у нижньому реєстрі (без 0х)
+        // і подальший контроль символів хешу - якщо їх значення 8 і більше, то літера 
+        // переводиться до верхнього реєстру (в таблиці ASCII для літер різного реєстру коди
+        // відрізняються на 32).
+        bytes32 _k = keccak256(abi.encodePacked(string(_addr)));
+        for(uint i = 0; i < 20; i++) {
+            uint8 _x = uint8(_k[i] >> 4);
+            if(_x >= 8 && _res[2 + 2 * i] > '9') {  // потрібно перевести до верхнього реєстру літеру адреси
+                _res[2 + 2 * i] = bytes1( uint8(_res[2 + 2 * i]) - 32 ) ;
+            }
+            _x = uint8(_k[i] & 0x0f);
+            if(_x >= 8 && _res[3 + 2 * i] > '9') {  // потрібно перевести до верхнього реєстру літеру адреси
+                _res[3 + 2 * i] = bytes1( uint8(_res[3 + 2 * i]) - 32 ) ;
+            }
         }
         return string(_res);
     }

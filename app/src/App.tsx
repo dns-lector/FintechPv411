@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import CounterABI from '../../evm/artifacts/contracts/Counter.sol/Counter.json';
+import GreeterABI from '../../evm/artifacts/contracts/Greeter.sol/Greeter.json';
 import './App.css'
 import { ethers } from 'ethers';
 
 const RPC_URL = "http://127.0.0.1:8545/";
 const counterAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
+const greeterAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
 
 // MetaMask надає бібліотеки, але вбудовує їх до BOM (window.)
 // TypeScript має стандартне означення ВОМ, тому необхідно розширити
@@ -27,6 +29,10 @@ function App() {
   const [getCntData, setGetCntData] = useState('');
   // дані форми для введення інкременту
   const [inpInc, setInpInc] = useState<number>(2);
+
+  
+  const [greetingData, setGreetingData] = useState('');
+  const [newGreeting, setNewGreeting] = useState<string>('');
 
   useEffect(() => {
     // стартовий ефект - підключення та налаштування
@@ -57,6 +63,46 @@ function App() {
     catch(err) {
       alert("У доступі відмовлено " + JSON.stringify(err));
     }
+  };
+  
+  
+
+  const setGreeting = async () => {
+    if(!signer) {
+      alert("Спочатку необхідно підключитись до мережі");
+      return;
+    }
+    if(newGreeting.trim().length == 0) {
+      alert("Вітання не може бути порожнім");
+      return;
+    }
+    try {
+      const contract = new ethers.Contract(greeterAddress, GreeterABI.abi, signer);
+      const data = await contract.setGreeting(newGreeting);
+      console.log(data);
+      setGreetingData(data);
+    }
+    catch(err) {
+      alert("Помилка виконання " + JSON.stringify(err));
+    }
+
+  };
+
+  const getGreeting = async () => {
+    if(!signer) {
+      alert("Спочатку необхідно підключитись до мережі");
+      return;
+    }
+    try {
+      const contract = new ethers.Contract(greeterAddress, GreeterABI.abi, signer);
+      const data = await contract.greet();
+      console.log(data);
+      setGreetingData(data);
+    }
+    catch(err) {
+      alert("Помилка виконання " + JSON.stringify(err));
+    }
+
   };
 
   const activateCounter = async () => {
@@ -137,6 +183,13 @@ function App() {
   <h1>Hardhat + React + Ethers</h1>
   <button onClick={connectWallet}>Connect Wallet</button>
   {signer && <pre>{JSON.stringify(signer,null,4)}</pre>}
+  
+  <button onClick={getGreeting}>Greeting</button>
+  <input value={newGreeting} onChange={e => setNewGreeting(e.target.value)} />
+  <button onClick={setGreeting}>Change Greeting</button>
+  {greetingData && <pre>{JSON.stringify(greetingData,null,4)}</pre>}
+
+
   <button onClick={activateCounter}>Counter</button>
   {contractData && <pre>{JSON.stringify(contractData,null,4)}</pre>}
   <button onClick={getCounter}>GET Counter</button>
@@ -168,4 +221,7 @@ evm/artifacts/contracts/...
 Д.З. Реалізувати взаємодію фронтенда з методом "dec" смарт-контракту Counter.
 Перевірити як правильну роботу, так і виняткову через досягнення нуля.
 Додати скріншоти.
+
+0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 */

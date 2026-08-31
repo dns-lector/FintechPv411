@@ -49,6 +49,7 @@ Compiled 1 Solidity file with solc 0.8.28 (evm target: cancun)
 
 запускаємо скрипт публікації 
 > npx hardhat run scripts/deploy-counter.ts --build-profile production --network localhost
+> npx hardhat run scripts/deploy-greeter.ts --build-profile production --network localhost
 
 Start deploying in network localhost
 Deployment started...
