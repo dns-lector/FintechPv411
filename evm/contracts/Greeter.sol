@@ -7,6 +7,8 @@ contract Greeter {
     string private greeting;
     address private owner;   // address - число, що визначає вузол у мережі
     event Changed(string newGreeting);
+    bytes4 constant InvalidID = 0xffffffff;   // ERC-165 invalid id
+    bytes4 constant ERC165ID  = 0x01ffc9a7;   // ERC-165 valid id
 
     constructor(string memory initialGreeting) {
         greeting = initialGreeting;
@@ -18,8 +20,42 @@ contract Greeter {
 
     receive() external payable {}  // метод для дефолтного прийому ETH
 
-    fallback() external payable {  // обробник помилок за замовчанням
-        console.log("Error %s from %s", msg.value, msg.sender);
+    fallback() external payable {  // обробник помилок неіснуючого методу (селектору) за замовчанням
+        // При виклику методу (селектору), якого не існує в смарт-контракті
+        // передаються відомості про його назву, але не в прямому вигляді
+        // у полі msg.data закладаються перші 4 байти від хешу (keccak256)
+        // від імені (назви) методу (точніше, виклику - з урахуванням дужок)
+        console.log("Unknown selector from %s", msg.sender);
+        if(msg.data.length >= 4) {
+            // відокремлюємо перші 4 байти, для константних масивів-параметрів слайси дозволені
+            bytes4 selectorHash = bytes4( msg.data[:4] );
+            // не всі типи даних консоль виводить через базовий метод .log
+            console.log("Selector hash starts with:");
+            console.logBytes4(selectorHash);
+        }
+        else {
+            console.log("No data about selector");
+        }
+    }
+
+    // За стандартом ERC-20
+    function decimals() public pure returns (uint8) {
+        return 8;
+    }
+    function symbol() public pure returns (string memory) {
+        return "ABC";
+    }
+    function balanceOf(address _owner) public pure returns (uint256 balance) {
+        if(_owner != address(0)) return 100;
+    }
+
+    // За стандартом ERC-165
+    function supportsInterface(bytes4 interfaceID) external pure returns (bool) {
+        if(interfaceID[0] != ERC165ID[0]) return false;
+        if(interfaceID[1] != ERC165ID[1]) return false;
+        if(interfaceID[2] != ERC165ID[2]) return false;
+        if(interfaceID[3] != ERC165ID[3]) return false;
+        return true;
     }
 
     function greet() public view returns (string memory) {
@@ -102,6 +138,12 @@ contract Greeter {
 Д.З. Скласти метод мовою Solidity, який з числа робить його 
 бінарне представлення у вигляді рядка на кшталт 0110010100101101
 * поділити це представлення на групи по 8 біт: 01100101 00101101
+
+Д.З. Завершити імплементацію методів згідно з ERC-20 для 
+смарт-контракту Greeter
+зразок: 
+https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol
+
     */
 }
 /*
