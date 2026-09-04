@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import CounterABI from '../../evm/artifacts/contracts/Counter.sol/Counter.json';
 import GreeterABI from '../../evm/artifacts/contracts/Greeter.sol/Greeter.json';
+import VoterABI from '../../evm/artifacts/contracts/Voter.sol/Voter.json';
 import './App.css'
 import { ethers } from 'ethers';
 
 const RPC_URL = "http://127.0.0.1:8545/";
 const counterAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
 const greeterAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
+const voterAddress = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6";
+// 0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199
 
 // MetaMask надає бібліотеки, але вбудовує їх до BOM (window.)
 // TypeScript має стандартне означення ВОМ, тому необхідно розширити
@@ -179,11 +182,81 @@ function App() {
     }
   };
 
+  const [candidates, setCandidates] = useState([]);
+  const getCandidates = async () => {
+    if(!signer) {
+      alert("Спочатку необхідно підключитись до мережі");
+      return;
+    }
+    try {
+      const contract = new ethers.Contract(voterAddress, VoterABI.abi, signer);
+      const data = await contract.getCandidates();
+      console.log(data);
+      setCandidates(data);
+    }
+    catch(err) {
+      alert("Помилка виконання " + JSON.stringify(err));
+    }
+  };
+  const vote = async (i:number) => {
+    if(!signer) {
+      alert("Спочатку необхідно підключитись до мережі");
+      return;
+    }
+    try {
+      const contract = new ethers.Contract(voterAddress, VoterABI.abi, signer);
+      const data = await contract.vote(i);
+      console.log(data);
+      alert("Ok");
+    }
+    catch(err:any) {
+      alert("Помилка виконання " + err.reason);
+    }
+  };
+  const getVotes = async () => {
+    if(!signer) {
+      alert("Спочатку необхідно підключитись до мережі");
+      return;
+    }
+    try {
+      const contract = new ethers.Contract(voterAddress, VoterABI.abi, signer);
+      const data = await contract.getVotes();
+      console.log(data);
+    }
+    catch(err:any) {
+      alert("Помилка виконання " + err.reason);
+    }
+  };
+  const allow = async () => {
+    if(!signer) {
+      alert("Спочатку необхідно підключитись до мережі");
+      return;
+    }
+    if(newGreeting.trim().length == 0) {
+      alert("Вітання не може бути порожнім");
+      return;
+    }
+    try {
+      const contract = new ethers.Contract(voterAddress, VoterABI.abi, signer);
+      const data = await contract.allow(newGreeting);
+      console.log(data);
+    }
+    catch(err:any) {
+      alert("Помилка виконання " + err.reason);
+    }
+  };
+
   return <>
   <h1>Hardhat + React + Ethers</h1>
   <button onClick={connectWallet}>Connect Wallet</button>
   {signer && <pre>{JSON.stringify(signer,null,4)}</pre>}
-  
+
+  <button onClick={getCandidates}>Get Candidates</button>
+  {candidates.map((c,i) => <p key={c}>{c} <button onClick={() => vote(i)}>Vote</button></p>)}
+
+  <button onClick={getVotes}>Get Votes</button>
+  <button onClick={allow}>Allow</button>
+
   <button onClick={getGreeting}>Greeting</button>
   <input value={newGreeting} onChange={e => setNewGreeting(e.target.value)} />
   <button onClick={setGreeting}>Change Greeting</button>

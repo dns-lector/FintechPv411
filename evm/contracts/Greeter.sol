@@ -49,7 +49,7 @@ contract Greeter {
         if(_owner != address(0)) return 100;
     }
 
-    // За стандартом ERC-165
+    // За стандартом ERC-165  0x01ffc9a7
     function supportsInterface(bytes4 interfaceID) external pure returns (bool) {
         if(interfaceID[0] != ERC165ID[0]) return false;
         if(interfaceID[1] != ERC165ID[1]) return false;
